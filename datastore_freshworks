@@ -1,0 +1,96 @@
+import time
+d = {}
+
+def create(key, value, timeout=0):
+    if key in d:
+        print("error: this key already exists")  # error1
+    else:
+        if (key.isalpha()):
+            if len(d) < (1024 * 1024 * 1024) and value <= (16 * 1024 * 1024):  # file less than 1GB and json object less than 16KB 
+                if timeout == 0:
+                    l = [value, timeout]
+                else:
+                    l = [value, time.time() + timeout]
+                if len(key) <= 32:  # condition for key_name as 32chars
+                    d[key] = l
+            else:
+                print("error: Memory limit exceeded!! ")  # error2
+        else:
+            print("error: Invalind key_name!! key_name must contain only alphabets and no special characters or numbers")
+           
+def read(key):
+    if key not in d:
+        print("error: given key does not exist in database. Please enter a valid key")  # error4
+    else:
+        b = d[key]
+        if b[1] != 0:
+            if time.time() < b[1]:  # compare current time with expiry time
+                stri = str(key) + ":" + str(b[0])  # to return value as JasonObject
+                return stri
+            else:
+                print("error: time-to-live of", key, "has expired")  # error message5
+        else:
+            stri = str(key) + ":" + str(b[0])
+            return stri
+            
+def delete(key):
+    if key not in d:
+        print("error: given key does not exist in database. Please enter a valid key")  # error message4
+    else:
+        b = d[key]
+        if b[1] != 0:
+            if time.time() < b[1]:  # comparing the current time with expiry time
+                del d[key]
+                print("key is successfully deleted")
+            else:
+                print("error: time-to-live of", key, "has expired")  # error message5
+        else:
+            del d[key]
+            print("key is successfully deleted")
+            
+def modify(key, value):
+    b = d[key]
+    if b[1] != 0:
+        if time.time() < b[1]:
+            if key not in d:
+                print("error: given key does not exist in database. Please enter a valid key")  # error6
+            else:
+                l = []
+                l.append(value)
+                l.append(b[1])
+                d[key] = l
+        else:
+            print("error: time-to-live of", key, "has expired")  # error5
+    else:
+        if key not in d:
+            print("error: given key does not exist in database. Please enter a valid key")  # error6
+        else:
+            l = []
+            l.append(value)
+            l.append(b[1])
+            d[key] = l
+            
+while(1):
+    x=int(input("Enter 1.create 2.read 3.modify 4.delete"))
+    if(x==1):
+        inp_key=input("Enter the key")
+        inp_val=int(input("Enter the val"))
+        inp_time=input("Enter YES for time limit")
+        if(inp_time=="yes"):
+            create(inp_key, inp_val, 3600)
+        else:
+            create(inp_key, inp_val)
+    elif(x==2):
+        inp_key=input("Enter the key")
+        read_result=read(inp_key)
+        print(read_result)
+    elif(x==3):
+        inp_key=input("Enter the key")
+        inp_val=input("Enter the val")
+        modify(inp_key,inp_val)
+    elif(x==4):
+        inp_key=input("Enter the key")
+        delete(inp_key)
+    else:
+        print('Exit')
+        break
